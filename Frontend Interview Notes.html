@@ -1,0 +1,758 @@
+<!doctype html><html><head><meta charset=utf8><meta name=viewport content="width=device-width,initial-scale=1,viewport-fit=cover"><style>:root{color-scheme:light;box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}html{scroll-padding-top:env(safe-area-inset-top,0px)}body{margin:0;padding:0;font:14px -apple-system,BlinkMacSystemFont,sans-serif;background:#fff;color:#000}img{max-width:100%}[hidden]:not([hidden=until-found i]){display:none!important}</style></head><body>
+<title>Frontend Interview Notes</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<style>
+  /* Layout: sticky top bar + contents sidebar (left on desktop, collapsible on mobile) + reading column.
+     Content rendered from semantic HTML; JS adds search, practice mode, theme, scrollspy. */
+  :root{
+    --bg:#f6f7f5; --surface:#ffffff; --surface-2:#eef1f5; --code-bg:#f0f3f7;
+    --fg:#1a2330; --muted:#596472; --border:#e2e6ec;
+    --accent:#1f3a5f; --accent-2:#2f5a8f; --accent-soft:#e8eef7;
+    --star:#9a5b00; --star-soft:#fbf0dc; --star-border:#eed6a8;
+    --good:#1f7a4d; --on-accent:#ffffff;
+    --font-head:"IBM Plex Serif",Georgia,serif;
+    --font-body:"IBM Plex Sans",system-ui,sans-serif;
+    --font-mono:"IBM Plex Mono",ui-monospace,SFMono-Regular,Menlo,monospace;
+    --maxread:70ch;
+  }
+  @media (prefers-color-scheme:dark){:root:not([data-theme="light"]){
+    --bg:#0e1318; --surface:#151b23; --surface-2:#1a212b; --code-bg:#121820;
+    --fg:#e5e9ef; --muted:#9aa6b4; --border:#28313d;
+    --accent:#86abdb; --accent-2:#a9c6ec; --accent-soft:#17243a;
+    --star:#e3ad5c; --star-soft:#2a2213; --star-border:#4a3b1d;
+    --good:#5ac08a; --on-accent:#0e1318; color-scheme:dark;
+  }}
+  :root[data-theme="dark"]{
+    --bg:#0e1318; --surface:#151b23; --surface-2:#1a212b; --code-bg:#121820;
+    --fg:#e5e9ef; --muted:#9aa6b4; --border:#28313d;
+    --accent:#86abdb; --accent-2:#a9c6ec; --accent-soft:#17243a;
+    --star:#e3ad5c; --star-soft:#2a2213; --star-border:#4a3b1d;
+    --good:#5ac08a; --on-accent:#0e1318; color-scheme:dark;
+  }
+
+  *{box-sizing:border-box}
+  body{background:var(--bg);color:var(--fg);font-family:var(--font-body);line-height:1.6;
+       font-size:15px;-webkit-text-size-adjust:100%}
+  h1,h2,h3{font-family:var(--font-head);text-wrap:balance;line-height:1.25;margin:0}
+  a{color:var(--accent-2);text-underline-offset:2px}
+  code,pre{font-family:var(--font-mono)}
+
+  /* ---- top bar ---- */
+  body::before{content:"";position:fixed;inset:0 0 auto;height:env(safe-area-inset-top,0px);
+       background:var(--surface);z-index:30}
+  .bar{position:sticky;top:env(safe-area-inset-top,0px);z-index:20;background:var(--surface);
+       border-bottom:1px solid var(--border)}
+  .bar-in{padding-block:10px;padding-left:max(16px,env(safe-area-inset-left,0px));
+       padding-right:max(16px,env(safe-area-inset-right,0px));
+       display:flex;align-items:center;gap:10px;flex-wrap:wrap}
+  .brand{display:flex;align-items:baseline;gap:9px;min-width:0;margin-right:auto}
+  .brand b{font-family:var(--font-head);font-weight:600;font-size:16px;white-space:nowrap}
+  .brand span{color:var(--muted);font-size:12px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+  .search{flex:1 1 180px;min-width:120px;max-width:340px;display:flex;align-items:center;gap:7px;
+       background:var(--surface-2);border:1px solid var(--border);border-radius:9px;padding:6px 10px}
+  .search input{border:0;background:transparent;color:var(--fg);font:inherit;font-size:13px;width:100%;outline:none}
+  .search svg{flex:none;color:var(--muted)}
+  .btn{border:1px solid var(--border);background:var(--surface-2);color:var(--fg);font:inherit;
+       font-size:12.5px;border-radius:9px;padding:6px 11px;cursor:pointer;white-space:nowrap;
+       display:inline-flex;align-items:center;gap:6px}
+  .btn:hover{border-color:var(--accent)}
+  .btn[aria-pressed="true"]{background:var(--accent);border-color:var(--accent);color:var(--on-accent)}
+  .btn.icon{padding:6px 9px}
+  #tocToggle{display:none}
+
+  /* ---- shell ---- */
+  .shell{display:grid;grid-template-columns:230px minmax(0,1fr);gap:28px;
+       max-width:1040px;margin:0 auto;
+       padding-left:max(16px,env(safe-area-inset-left,0px));
+       padding-right:max(16px,env(safe-area-inset-right,0px));padding-block:26px}
+
+  /* ---- contents ---- */
+  nav.toc{position:sticky;top:calc(env(safe-area-inset-top,0px) + 64px);align-self:start;
+       max-height:calc(100vh - 90px);overflow:auto;font-size:13px}
+  nav.toc ol{list-style:none;margin:0;padding:0;display:flex;flex-direction:column;gap:1px}
+  nav.toc a{display:flex;gap:9px;padding:6px 9px;border-radius:7px;color:var(--muted);
+       text-decoration:none;line-height:1.3}
+  nav.toc a .n{color:var(--accent);font-family:var(--font-mono);font-size:11px;flex:none;width:16px;
+       text-align:right;padding-top:1px}
+  nav.toc a:hover{background:var(--surface-2);color:var(--fg)}
+  nav.toc a.active{background:var(--accent-soft);color:var(--fg);font-weight:600}
+
+  /* ---- reading column ---- */
+  main{min-width:0;max-width:var(--maxread)}
+  .intro h1{font-size:clamp(25px,6vw,36px);letter-spacing:-.01em}
+  .intro .lede{color:var(--muted);margin-top:8px;font-size:15.5px}
+  .howto{background:var(--surface);border:1px solid var(--border);border-radius:12px;
+       padding:16px 18px;margin-top:20px}
+  .howto p{margin:0 0 8px}
+  .howto p:last-child{margin-bottom:0}
+
+  section.topic{margin-top:40px;scroll-margin-top:calc(env(safe-area-inset-top,0px) + 76px)}
+  section.topic > h2{font-size:22px;display:flex;align-items:baseline;gap:11px;
+       padding-bottom:10px;border-bottom:2px solid var(--border)}
+  section.topic > h2 .n{font-family:var(--font-mono);font-size:14px;color:var(--accent);flex:none}
+  .concept{margin-top:14px}
+  .concept p{margin:0 0 11px}
+  .concept ul{margin:0 0 12px;padding-left:20px}
+  .concept li{margin:3px 0}
+  h3.sub{font-size:13px;text-transform:uppercase;letter-spacing:.08em;color:var(--muted);
+       font-family:var(--font-body);font-weight:600;margin:22px 0 10px}
+
+  pre{background:var(--code-bg);border:1px solid var(--border);border-radius:10px;
+       padding:13px 14px;overflow-x:auto;font-size:12.5px;line-height:1.55;margin:0 0 13px}
+  pre code{color:var(--fg)}
+  .cmt{color:var(--muted);font-style:italic}
+  p code,li code{background:var(--surface-2);border:1px solid var(--border);border-radius:5px;
+       padding:.05em .35em;font-size:.88em}
+
+  /* star / "yours" chip */
+  .star{display:inline-flex;align-items:center;gap:4px;background:var(--star-soft);
+       border:1px solid var(--star-border);color:var(--star);font-size:11px;font-weight:600;
+       padding:1px 7px;border-radius:999px;letter-spacing:.02em;vertical-align:middle;white-space:nowrap}
+  h2 .star,h3 .star{font-weight:600}
+
+  /* Q&A */
+  .qa{background:var(--surface);border:1px solid var(--border);border-radius:11px;
+       padding:13px 15px;margin:10px 0}
+  .qa.yours{border-left:3px solid var(--star)}
+  .qa .q{font-weight:600;margin:0;display:flex;gap:9px;align-items:flex-start;cursor:default}
+  .qa .q .mark{color:var(--accent);font-family:var(--font-mono);font-weight:700;flex:none;line-height:1.5}
+  .qa .tag{display:inline-block;font-size:11px;color:var(--muted);font-weight:500;margin-left:6px}
+  .qa .a{margin:9px 0 0;padding-left:21px;color:var(--fg)}
+  .qa .a .mark{display:none}
+  .reveal{display:none;margin:10px 0 0;margin-left:21px}
+
+  /* practice mode: hide answers until revealed */
+  body.practice .qa:not(.open) .a{display:none}
+  body.practice .qa:not(.open) .reveal{display:inline-flex}
+
+  .nores{display:none;color:var(--muted);padding:24px 2px}
+  .foot{margin-top:52px;padding-top:18px;border-top:1px solid var(--border);color:var(--muted);font-size:13px}
+
+  mark{background:var(--star-soft);color:var(--fg);border-radius:3px;padding:0 1px}
+
+  @media (max-width:820px){
+    .shell{grid-template-columns:1fr;gap:0;padding-block:18px}
+    #tocToggle{display:inline-flex}
+    nav.toc{position:static;max-height:none;overflow:visible;margin-bottom:10px;
+         background:var(--surface);border:1px solid var(--border);border-radius:11px;padding:8px}
+    nav.toc[hidden]{display:none}
+    nav.toc ol{gap:0}
+    .brand span{display:none}
+    main{max-width:none}
+  }
+  @media (prefers-reduced-motion:no-preference){html{scroll-behavior:smooth}}
+</style>
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:ital,wght@0,400;0,500;1,400&family=IBM+Plex+Sans:wght@400;500;600&family=IBM+Plex+Serif:wght@500;600&display=swap">
+
+<header class="bar">
+  <div class="bar-in">
+    <div class="brand"><b>Interview Notes</b><span>Frontend · React · Next.js · TS</span></div>
+    <label class="search">
+      <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="7"/><path d="m21 21-4.3-4.3"/></svg>
+      <input id="q" type="search" placeholder="Search questions…" autocomplete="off" aria-label="Search">
+    </label>
+    <button class="btn" id="practice" aria-pressed="false" title="Hide answers to quiz yourself">Practice</button>
+    <button class="btn icon" id="theme" title="Toggle theme" aria-label="Toggle theme">◐</button>
+    <button class="btn icon" id="tocToggle" aria-expanded="false" aria-controls="toc" title="Contents">☰</button>
+  </div>
+</header>
+
+<div class="shell">
+  <nav class="toc" id="toc" aria-label="Contents"><ol id="tocList"></ol></nav>
+
+  <main>
+    <div class="intro">
+      <h1>Frontend Interview Notes</h1>
+      <p class="lede">Study notes built from your resume — read to understand, then quiz yourself. Open it anytime, on any device.</p>
+      <div class="howto">
+        <p><b>How to use.</b> Each topic has a <b>concept</b> (plain-language explanation), <b>code</b> where it helps it click, and the <b>questions</b> you're likely to get with answers in your own voice.</p>
+        <p>Tap <b>Practice</b> to hide answers and test yourself. Items tagged <span class="star">★ yours</span> are tied to your real PolicyBazaar work — own those fully. It's always fine to say <em>“I haven't gone deep on that, but here's what I understand…”</em></p>
+      </div>
+    </div>
+
+    <p class="nores" id="nores">No questions match that search.</p>
+
+    <!-- 1 JS -->
+    <section class="topic" id="js" data-title="JavaScript Essentials">
+      <h2><span class="n">01</span> JavaScript Essentials</h2>
+      <div class="concept">
+        <p>JavaScript runs in the browser and makes pages interactive. The ideas that keep coming up: how variables are scoped, how values are compared, how functions remember data (closures), and how slow work is handled without freezing the page (async).</p>
+        <ul>
+          <li>Use <code>const</code> by default, <code>let</code> when the value changes, avoid old <code>var</code>.</li>
+          <li>Always compare with <code>===</code> (value <em>and</em> type). <code>==</code> converts types first and causes bugs.</li>
+        </ul>
+        <p>A <b>closure</b> is a function that remembers variables from where it was created, even after the outer function finished — it's <em>why</em> <code>useState</code> can remember values between renders.</p>
+        <pre><code>function makeCounter() {
+  let count = 0;                 <span class="cmt">// private to this counter</span>
+  return function () {
+    count = count + 1;           <span class="cmt">// "closes over" count</span>
+    return count;
+  };
+}
+const next = makeCounter();
+next(); <span class="cmt">// 1</span>
+next(); <span class="cmt">// 2  — count is remembered</span></code></pre>
+        <p><code>map</code>, <code>filter</code>, <code>reduce</code> turn data into UI constantly:</p>
+        <pre><code>const nums = [1, 2, 3, 4];
+nums.map(n =&gt; n * 2);               <span class="cmt">// [2,4,6,8]  transform each</span>
+nums.filter(n =&gt; n % 2 === 0);      <span class="cmt">// [2,4]      keep some</span>
+nums.reduce((sum, n) =&gt; sum + n, 0);<span class="cmt">// 10        one value</span></code></pre>
+      </div>
+
+      <div class="qa"><p class="q"><span class="mark">Q</span>Difference between <code>var</code>, <code>let</code>, and <code>const</code>?</p>
+        <p class="a"><span class="mark">A</span><code>var</code> is old and leaks outside blocks — avoid it. <code>let</code> is for values that change. <code>const</code> is for values that won't be reassigned. I use <code>const</code> by default.</p>
+        <button class="btn reveal">Show answer</button></div>
+
+      <div class="qa"><p class="q"><span class="mark">Q</span><code>==</code> vs <code>===</code>?</p>
+        <p class="a"><span class="mark">A</span><code>==</code> compares after converting types, so <code>5 == "5"</code> is true — bug-prone. <code>===</code> checks value and type. I always use <code>===</code>.</p>
+        <button class="btn reveal">Show answer</button></div>
+
+      <div class="qa"><p class="q"><span class="mark">Q</span>What is hoisting?</p>
+        <p class="a"><span class="mark">A</span>JS moves declarations to the top of their scope before running. <code>var</code> and functions get hoisted; with <code>let</code>/<code>const</code> the name exists but can't be used before its line. Takeaway: declare before you use.</p>
+        <button class="btn reveal">Show answer</button></div>
+
+      <div class="qa yours"><p class="q"><span class="mark">Q</span>What is a closure? <span class="tag">deep</span></p>
+        <p class="a"><span class="mark">A</span>A function that remembers variables from where it was created, even after the outer function finished (the counter example). It's how <code>useState</code> remembers values between renders. <span class="star">★ yours</span> In my config-driven forms, closures let each field keep its own validation logic.</p>
+        <button class="btn reveal">Show answer</button></div>
+
+      <div class="qa"><p class="q"><span class="mark">Q</span>What does <code>this</code> refer to?</p>
+        <p class="a"><span class="mark">A</span>It depends on <em>how</em> a function is called, not where it's written. Arrow functions borrow <code>this</code> from the surrounding code, which is why I use them in React to avoid binding issues.</p>
+        <button class="btn reveal">Show answer</button></div>
+
+      <div class="qa"><p class="q"><span class="mark">Q</span>What is the event loop? <span class="tag">deep</span></p>
+        <p class="a"><span class="mark">A</span>JS runs one thing at a time. Slow tasks (API calls, timers) are handed off, and when they finish their callback goes back in line to run. That's how JS stays responsive without true multithreading.</p>
+        <button class="btn reveal">Show answer</button></div>
+    </section>
+
+    <!-- 2 TS -->
+    <section class="topic" id="ts" data-title="TypeScript">
+      <h2><span class="n">02</span> TypeScript</h2>
+      <div class="concept">
+        <p>TypeScript is JavaScript plus <b>types</b>. You describe what shape your data should be, and the editor warns you <em>before</em> the code runs if something doesn't match. On a big codebase it also works like built-in documentation.</p>
+        <pre><code>type Insurer = {
+  id: string;
+  name: string;
+  active?: boolean;        <span class="cmt">// optional — may be missing</span>
+};
+
+let value: string | number;  <span class="cmt">// union — one of several types</span>
+value = "hello";             <span class="cmt">// ok</span>
+value = 42;                  <span class="cmt">// also ok</span></code></pre>
+        <p><b>Generics</b> let one function work with many types — think "a box of X":</p>
+        <pre><code>function first&lt;T&gt;(items: T[]): T {
+  return items[0];           <span class="cmt">// works for string[], number[], Insurer[]…</span>
+}</code></pre>
+      </div>
+
+      <div class="qa yours"><p class="q"><span class="mark">Q</span>Why TypeScript instead of plain JavaScript?</p>
+        <p class="a"><span class="mark">A</span>It catches mistakes before the code runs and documents what shape of data things expect. <span class="star">★ yours</span> On a 2,200-file app, that safety net saves a lot of debugging.</p>
+        <button class="btn reveal">Show answer</button></div>
+
+      <div class="qa"><p class="q"><span class="mark">Q</span><code>type</code> vs <code>interface</code>?</p>
+        <p class="a"><span class="mark">A</span>Both describe object shapes. <code>interface</code> is usually for objects and can be extended; <code>type</code> is more flexible (also unions). Interchangeable for simple objects — I pick one and stay consistent.</p>
+        <button class="btn reveal">Show answer</button></div>
+
+      <div class="qa"><p class="q"><span class="mark">Q</span><code>any</code> vs <code>unknown</code>?</p>
+        <p class="a"><span class="mark">A</span><code>any</code> turns off type checking — risky. <code>unknown</code> means "not known yet" but forces a check first. I avoid <code>any</code> except as a quick temporary fix.</p>
+        <button class="btn reveal">Show answer</button></div>
+
+      <div class="qa yours"><p class="q"><span class="mark">Q</span>What are generics? <span class="tag">deep</span></p>
+        <p class="a"><span class="mark">A</span>One function or type that works with many data types — like <code>Array&lt;string&gt;</code> meaning "array of strings." <span class="star">★ yours</span> My reusable components use generics so they accept different data shapes safely.</p>
+        <button class="btn reveal">Show answer</button></div>
+
+      <div class="qa"><p class="q"><span class="mark">Q</span>How do you use TypeScript day to day?</p>
+        <p class="a"><span class="mark">A</span>I type component props, API responses, and Redux state. Biggest wins are autocomplete and catching "undefined is not a function" early. I don't over-engineer types.</p>
+        <button class="btn reveal">Show answer</button></div>
+    </section>
+
+    <!-- 3 React -->
+    <section class="topic" id="react" data-title="React — Core &amp; Hooks">
+      <h2><span class="n">03</span> React — Core &amp; Hooks</h2>
+      <div class="concept">
+        <p>React builds UIs out of <b>components</b> — small reusable pieces. When a component's <b>data changes, React re-renders</b> it and updates only the parts of the screen that actually changed.</p>
+        <ul>
+          <li><b>Props</b> = data passed <em>into</em> a component from its parent (read-only).</li>
+          <li><b>State</b> = data a component owns and can change over time.</li>
+        </ul>
+        <pre><code>function Counter() {
+  const [count, setCount] = React.useState(0);   <span class="cmt">// state + updater</span>
+  return (
+    &lt;button onClick={() =&gt; setCount(count + 1)}&gt;
+      Clicked {count} times
+    &lt;/button&gt;
+  );
+}</code></pre>
+        <p><code>useEffect</code> runs code <em>after</em> render; the dependency array controls <em>when</em> it re-runs:</p>
+        <pre><code>useEffect(() =&gt; {
+  loadQuote(insurerId);          <span class="cmt">// run this…</span>
+}, [insurerId]);                 <span class="cmt">// …again only when insurerId changes</span></code></pre>
+      </div>
+
+      <div class="qa"><p class="q"><span class="mark">Q</span>What is React in one line?</p>
+        <p class="a"><span class="mark">A</span>A JavaScript library for building UIs out of reusable components, where the screen updates automatically when the data changes.</p>
+        <button class="btn reveal">Show answer</button></div>
+
+      <div class="qa"><p class="q"><span class="mark">Q</span>Props vs state?</p>
+        <p class="a"><span class="mark">A</span>Props come from outside (read-only); state lives inside and can change. Rule of thumb: props in, state owned.</p>
+        <button class="btn reveal">Show answer</button></div>
+
+      <div class="qa"><p class="q"><span class="mark">Q</span>What does <code>useState</code> do?</p>
+        <p class="a"><span class="mark">A</span>Gives a component memory that survives re-renders, plus a function to update it. Calling the updater re-renders with the new value.</p>
+        <button class="btn reveal">Show answer</button></div>
+
+      <div class="qa yours"><p class="q"><span class="mark">Q</span>What is <code>useEffect</code> and the dependency array? <span class="tag">deep</span></p>
+        <p class="a"><span class="mark">A</span><code>useEffect</code> runs code after render — for fetching, subscriptions, etc. The array controls when: empty <code>[]</code> = once on mount, <code>[id]</code> = whenever <code>id</code> changes. <span class="star">★ yours</span> I use it to fetch quote data when the selected insurer changes. Common mistake: a missing dependency causing stale data.</p>
+        <button class="btn reveal">Show answer</button></div>
+
+      <div class="qa"><p class="q"><span class="mark">Q</span>Why does a component re-render?</p>
+        <p class="a"><span class="mark">A</span>When its state changes, its props change, or its parent re-renders. React then updates only the parts of the real screen that changed.</p>
+        <button class="btn reveal">Show answer</button></div>
+
+      <div class="qa"><p class="q"><span class="mark">Q</span>Why do lists need a <code>key</code>?</p>
+        <p class="a"><span class="mark">A</span>A unique ID that helps React tell list items apart, so it updates the right one instead of redrawing all. Use a stable ID, not the array index, when items can reorder.</p>
+        <button class="btn reveal">Show answer</button></div>
+
+      <div class="qa"><p class="q"><span class="mark">Q</span><code>useMemo</code> and <code>useCallback</code>? <span class="tag">deep</span></p>
+        <p class="a"><span class="mark">A</span>Performance tools. <code>useMemo</code> remembers an expensive calculation's result; <code>useCallback</code> remembers a function so it isn't recreated each render. I use them when I see a real performance problem, not everywhere.</p>
+        <button class="btn reveal">Show answer</button></div>
+
+      <div class="qa"><p class="q"><span class="mark">Q</span>What is a controlled input?</p>
+        <p class="a"><span class="mark">A</span>An input whose value is driven by React state — React is the single source of truth. Standard way I build forms so validation and conditional logic stay in sync.</p>
+        <button class="btn reveal">Show answer</button></div>
+    </section>
+
+    <!-- 4 Redux -->
+    <section class="topic" id="redux" data-title="State Management">
+      <h2><span class="n">04</span> State Management (Redux &amp; Toolkit)</h2>
+      <div class="concept">
+        <p>When many screens need the <b>same data</b> (like a quote in progress), passing it down through every component gets messy. Redux keeps that shared data in <b>one central store</b> any component can read.</p>
+        <ul>
+          <li><b>Store</b> — the single box holding shared state.</li>
+          <li><b>Action</b> — a message saying "something happened".</li>
+          <li><b>Reducer</b> — takes current state + action, returns new state.</li>
+        </ul>
+        <p>Flow: component dispatches an <b>action</b> → <b>reducer</b> updates the <b>store</b> → components using that data re-render. <b>Redux Toolkit</b> is the modern, less-boilerplate way; a <b>slice</b> bundles state + reducers:</p>
+        <pre><code>const quoteSlice = createSlice({
+  name: "quote",
+  initialState: { insurerId: null, product: null },
+  reducers: {
+    setInsurer(state, action) { state.insurerId = action.payload; },
+    setProduct(state, action) { state.product = action.payload; },
+  },
+});</code></pre>
+      </div>
+
+      <div class="qa yours"><p class="q"><span class="mark">Q</span>Why use Redux at all?</p>
+        <p class="a"><span class="mark">A</span>When many parts need the same data, central state keeps it consistent instead of passing props everywhere. <span class="star">★ yours</span> Quote and proposal data is needed across many screens in my journey app.</p>
+        <button class="btn reveal">Show answer</button></div>
+
+      <div class="qa"><p class="q"><span class="mark">Q</span>Explain store, action, reducer in plain words.</p>
+        <p class="a"><span class="mark">A</span>Store = the one box of shared state. Action = a message that something happened. Reducer = the function that takes state + action and returns new state.</p>
+        <button class="btn reveal">Show answer</button></div>
+
+      <div class="qa yours"><p class="q"><span class="mark">Q</span>What is Redux Toolkit / a slice?</p>
+        <p class="a"><span class="mark">A</span>The official modern Redux with less boilerplate. A slice bundles a feature's state and reducers in one file. <span class="star">★ yours</span> I use slices to keep each feature's state organised.</p>
+        <button class="btn reveal">Show answer</button></div>
+
+      <div class="qa"><p class="q"><span class="mark">Q</span>Redux vs local state vs Context?</p>
+        <p class="a"><span class="mark">A</span>Local <code>useState</code> for one-component data; Context for small rarely-changing globals (theme, user); Redux for complex shared state many screens depend on. I don't put everything in Redux.</p>
+        <button class="btn reveal">Show answer</button></div>
+    </section>
+
+    <!-- 5 Next -->
+    <section class="topic" id="next" data-title="Next.js &amp; Rendering">
+      <h2><span class="n">05</span> Next.js &amp; Rendering</h2>
+      <div class="concept">
+        <p>Plain React runs entirely in the browser. <b>Next.js</b> adds routing, server-side rendering, and performance features out of the box. The big win: it can render pages <b>on the server</b> so they load faster and are better for SEO — which matters for marketing/landing pages.</p>
+        <ul>
+          <li><b>CSR</b> (client-side) — browser builds it. Good for app-like screens after login.</li>
+          <li><b>SSR</b> (server-side) — server builds HTML each request. Good for pages that change and need SEO.</li>
+          <li><b>SSG</b> (static) — pre-built once at deploy. Fastest; for content that rarely changes.</li>
+        </ul>
+        <p><span class="star">★ yours</span> Your journey app is React + Vite (interactive, behind login); your marketing app is Next.js (public, needs SEO + fast first load). Right tool per job.</p>
+      </div>
+
+      <div class="qa yours"><p class="q"><span class="mark">Q</span>What does Next.js add over plain React?</p>
+        <p class="a"><span class="mark">A</span>Routing, server-side rendering, and performance features built in. Server rendering means faster loads and better SEO. <span class="star">★ yours</span> That's why the marketing app uses Next.js.</p>
+        <button class="btn reveal">Show answer</button></div>
+
+      <div class="qa yours"><p class="q"><span class="mark">Q</span>App Router vs Pages Router?</p>
+        <p class="a"><span class="mark">A</span>Two routing systems. Pages is older/file-based; App Router is newer with folders, layouts, and server components by default. <span class="star">★ yours</span> I work in the App Router — mainly folder structure and layouts.</p>
+        <button class="btn reveal">Show answer</button></div>
+
+      <div class="qa"><p class="q"><span class="mark">Q</span>SSR vs SSG vs CSR?</p>
+        <p class="a"><span class="mark">A</span>CSR = browser builds it; SSR = server builds it per request; SSG = pre-built once at deploy. Landing pages favour SSR/SSG for speed and SEO.</p>
+        <button class="btn reveal">Show answer</button></div>
+
+      <div class="qa"><p class="q"><span class="mark">Q</span>Server vs client components? <span class="tag">deep · answer honestly</span></p>
+        <p class="a"><span class="mark">A</span>In the App Router, components render on the server by default (smaller bundle). If one needs interactivity (clicks, state, hooks) you mark it <code>"use client"</code>. Honest take: I use client components where I need interactivity and I'm still deepening the server-component data flow.</p>
+        <button class="btn reveal">Show answer</button></div>
+    </section>
+
+    <!-- 6 Config forms -->
+    <section class="topic" id="forms" data-title="Config / Schema-Driven Forms">
+      <h2><span class="n">06</span> Config-Driven Forms <span class="star">★ your signature</span></h2>
+      <div class="concept">
+        <p><em>Your strongest, most unique topic — own it fully.</em> Instead of hand-coding every form in React, the <b>backend sends a JSON description</b> of the form, and your code reads it and <b>builds the form automatically</b>. The <em>data</em> decides the form, not hard-coded screens.</p>
+        <pre><code><span class="cmt">// Backend sends this — no React code per product:</span>
+const formConfig = [
+  { name: "companyName", type: "text",   label: "Company name", required: true },
+  { name: "sumInsured",  type: "number", label: "Sum insured",  required: true },
+  { name: "droneCount",  type: "number", label: "Number of drones",
+    showIf: { field: "product", equals: "Drone" } },   <span class="cmt">// conditional field</span>
+];
+
+<span class="cmt">// One renderer builds ALL forms by looping over the config:</span>
+function FormRenderer({ config, values, onChange }) {
+  return config
+    .filter(field =&gt; isVisible(field, values))   <span class="cmt">// conditional fields</span>
+    .map(field =&gt; (
+      &lt;Field key={field.name} type={field.type} label={field.label}
+        value={values[field.name]} required={field.required}
+        onChange={v =&gt; onChange(field.name, v)} /&gt;
+    ));
+}</code></pre>
+        <p><b>Why it beats building each form separately:</b> with 20+ insurers and 20+ products, hand-coding every form means thousands of near-duplicate files that each break differently. One tested renderer + per-insurer config = fewer bugs, faster launches, one place to fix things.</p>
+      </div>
+
+      <div class="qa yours"><p class="q"><span class="mark">Q</span>Explain config-driven forms simply.</p>
+        <p class="a"><span class="mark">A</span>The backend sends JSON describing the form; my code reads it and builds the form automatically. The data decides the form, not hard-coded screens.</p>
+        <button class="btn reveal">Show answer</button></div>
+
+      <div class="qa"><p class="q"><span class="mark">Q</span>How does a form render from JSON?</p>
+        <p class="a"><span class="mark">A</span>The JSON is a list of fields with type, label, and rules. I loop over it and render the matching component for each. One renderer builds hundreds of forms from different JSON.</p>
+        <button class="btn reveal">Show answer</button></div>
+
+      <div class="qa"><p class="q"><span class="mark">Q</span>How do you handle validation and conditional fields?</p>
+        <p class="a"><span class="mark">A</span>Both come from the config. Validation applies as the user types; conditional fields appear/hide based on current answers (e.g. show "number of drones" only for Drone insurance).</p>
+        <button class="btn reveal">Show answer</button></div>
+
+      <div class="qa"><p class="q"><span class="mark">Q</span>What are cross-field dependencies? <span class="tag">deep</span></p>
+        <p class="a"><span class="mark">A</span>When one field's value affects another — like sum insured changing available add-ons, or one date needing to be after another. The config describes the link and the renderer re-checks it on every change.</p>
+        <button class="btn reveal">Show answer</button></div>
+
+      <div class="qa yours"><p class="q"><span class="mark">Q</span>How would you add a brand-new product?</p>
+        <p class="a"><span class="mark">A</span>In most cases no new UI code — the backend adds the product's field config and the existing renderer builds the form. New products ship without new form code. My job is making sure the renderer supports any new field <em>types</em> or rules.</p>
+        <button class="btn reveal">Show answer</button></div>
+    </section>
+
+    <!-- 7 Performance -->
+    <section class="topic" id="perf" data-title="Performance">
+      <h2><span class="n">07</span> Performance</h2>
+      <div class="concept">
+        <p><b>Code splitting / lazy loading</b> — instead of making the user download the whole app upfront, split it into chunks and load each part only when needed. The Quotes screen doesn't download the Proposal screen's code until the user gets there.</p>
+        <pre><code>const ProposalPage = lazy(() =&gt; import("./ProposalPage"));  <span class="cmt">// load when used</span>
+
+function App() {
+  return (
+    &lt;Suspense fallback={&lt;SkeletonLoader /&gt;}&gt;   <span class="cmt">// shown while loading</span>
+      &lt;ProposalPage /&gt;
+    &lt;/Suspense&gt;
+  );
+}</code></pre>
+        <p><b>Skeleton loaders</b> — grey placeholders shaped like the loading content, instead of a blank screen. They make the wait <em>feel</em> shorter and stop layout jumping. <span class="star">★ yours</span> You matched skeletons to real component shapes so the page doesn't shift.</p>
+      </div>
+
+      <div class="qa yours"><p class="q"><span class="mark">Q</span>What is code splitting and lazy loading?</p>
+        <p class="a"><span class="mark">A</span>Splitting the app into chunks and loading each only when needed, so first load is faster. In React: <code>React.lazy()</code> + <code>&lt;Suspense&gt;</code>. I split at the route level — each journey is its own chunk.</p>
+        <button class="btn reveal">Show answer</button></div>
+
+      <div class="qa"><p class="q"><span class="mark">Q</span>What are skeleton loaders and why use them?</p>
+        <p class="a"><span class="mark">A</span>Grey placeholders shaped like the loading content. They make the wait feel shorter and stop layout shift. <span class="star">★ yours</span> I matched them to real component shapes.</p>
+        <button class="btn reveal">Show answer</button></div>
+
+      <div class="qa yours"><p class="q"><span class="mark">Q</span>How did you improve load in your journeys?</p>
+        <p class="a"><span class="mark">A</span>Route-level code splitting so each journey loads only its code, plus skeleton loaders so users see structure immediately. Honest framing: practical wins — splitting and placeholders — rather than deep render-profiling.</p>
+        <button class="btn reveal">Show answer</button></div>
+
+      <div class="qa"><p class="q"><span class="mark">Q</span>Any other simple performance wins?</p>
+        <p class="a"><span class="mark">A</span>Avoiding unnecessary re-renders, stable <code>key</code>s in lists, lazy-loading images, and not loading data you don't need yet.</p>
+        <button class="btn reveal">Show answer</button></div>
+    </section>
+
+    <!-- 8 CSS -->
+    <section class="topic" id="css" data-title="CSS &amp; SCSS Modules">
+      <h2><span class="n">08</span> CSS &amp; SCSS Modules</h2>
+      <div class="concept">
+        <p><b>SCSS</b> is CSS with extra powers — variables, nesting, mixins — that compile to normal CSS. <b>CSS Modules</b> solve a real problem: normal CSS class names are <b>global</b>, so two files using <code>.button</code> can clash. CSS Modules <b>scope each class to its own file</b> automatically.</p>
+        <pre><code>import styles from "./Button.module.scss";
+
+function Button() {
+  return &lt;button className={styles.primary}&gt;Buy&lt;/button&gt;;
+  <span class="cmt">// styles.primary becomes a unique name — no clashes</span>
+}</code></pre>
+        <p><span class="star">★ yours</span> <b>The migration:</b> the app had 144 stylesheets using global CSS, causing clashes and hard-to-trace overrides. You migrated them to SCSS Modules across ~20 journeys, so each component's styles are isolated — fewer visual bugs.</p>
+      </div>
+
+      <div class="qa"><p class="q"><span class="mark">Q</span>SCSS vs plain CSS?</p>
+        <p class="a"><span class="mark">A</span>SCSS adds variables, nesting, and mixins that compile to normal CSS — easier to organise and keep consistent.</p>
+        <button class="btn reveal">Show answer</button></div>
+
+      <div class="qa yours"><p class="q"><span class="mark">Q</span>What problem do CSS Modules solve?</p>
+        <p class="a"><span class="mark">A</span>Normal CSS class names are global and can clash. CSS Modules scope each class to its file so styles can't leak or collide — huge on a large multi-dev app.</p>
+        <button class="btn reveal">Show answer</button></div>
+
+      <div class="qa yours"><p class="q"><span class="mark">Q</span>Tell me about the stylesheet migration.</p>
+        <p class="a"><span class="mark">A</span>144 global-CSS stylesheets were causing clashes and tricky overrides. I migrated them to SCSS Modules across ~20 journeys so each component's styles are isolated — fewer visual bugs.</p>
+        <button class="btn reveal">Show answer</button></div>
+
+      <div class="qa"><p class="q"><span class="mark">Q</span>What is CSS specificity?</p>
+        <p class="a"><span class="mark">A</span>The rulebook for which style wins. IDs beat classes, classes beat tags, inline beats all. Overly specific selectors cause "why won't this apply" fights; CSS Modules reduce that by keeping scope local.</p>
+        <button class="btn reveal">Show answer</button></div>
+    </section>
+
+    <!-- 9 Testing -->
+    <section class="topic" id="test" data-title="Testing">
+      <h2><span class="n">09</span> Testing</h2>
+      <div class="concept">
+        <p>You write tests so that when you change code, you <b>know you didn't break</b> something. <b>Unit test</b> = one small function in isolation; <b>component test</b> = render a component and check it behaves on interaction. <b>Vitest</b> runs the tests; <b>React Testing Library</b> lets you interact the way a user would.</p>
+        <pre><code>test("shows an error when a required field is empty", () =&gt; {
+  render(&lt;FormRenderer config={[{ name: "name", type: "text", required: true }]} /&gt;);
+  fireEvent.click(screen.getByText("Submit"));
+  expect(screen.getByText("This field is required")).toBeInTheDocument();
+});</code></pre>
+      </div>
+
+      <div class="qa yours"><p class="q"><span class="mark">Q</span>Why write tests?</p>
+        <p class="a"><span class="mark">A</span>So changing code doesn't silently break something. Tests catch regressions early. <span class="star">★ yours</span> With many insurers sharing one renderer, tests on shared components protect everyone.</p>
+        <button class="btn reveal">Show answer</button></div>
+
+      <div class="qa"><p class="q"><span class="mark">Q</span>Unit vs component testing?</p>
+        <p class="a"><span class="mark">A</span>Unit tests one small function in isolation; component test renders a component and checks behaviour on interaction. I mostly write component tests for shared UI.</p>
+        <button class="btn reveal">Show answer</button></div>
+
+      <div class="qa"><p class="q"><span class="mark">Q</span>What do Vitest and RTL do?</p>
+        <p class="a"><span class="mark">A</span>Vitest runs the tests and reports results; RTL renders components and lets me interact like a user — find a field, type, click, check the result.</p>
+        <button class="btn reveal">Show answer</button></div>
+
+      <div class="qa yours"><p class="q"><span class="mark">Q</span>What do you actually test?</p>
+        <p class="a"><span class="mark">A</span>Shared components and the dynamic form renderer — e.g. a required field shows an error when empty, a conditional field appears when it should, valid input submits. Honest note: practical behaviour tests, not chasing 100% coverage.</p>
+        <button class="btn reveal">Show answer</button></div>
+    </section>
+
+    <!-- 10 Routing/APIs -->
+    <section class="topic" id="api" data-title="Routing, APIs &amp; Lead Handoff">
+      <h2><span class="n">10</span> Routing, APIs &amp; Lead Handoff</h2>
+      <div class="concept">
+        <p><b>React Router</b> shows different components for different URLs without a full reload. A <b>dynamic route</b> has a changing part: <code>/quote/:insurerId</code> — one route serves 20+ insurers. When calling an API, always handle three states: loading, success, error.</p>
+        <pre><code>function QuotePage({ insurerId }) {
+  const [data, setData] = useState(null);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
+
+  useEffect(() =&gt; {
+    setLoading(true);
+    fetch(`/api/quote/${insurerId}`)
+      .then(res =&gt; res.json())
+      .then(setData)
+      .catch(() =&gt; setError("Could not load quote"))
+      .finally(() =&gt; setLoading(false));
+  }, [insurerId]);
+
+  if (loading) return &lt;SkeletonLoader /&gt;;
+  if (error)   return &lt;p&gt;{error}&lt;/p&gt;;
+  return &lt;Quote data={data} /&gt;;
+}</code></pre>
+        <p><span class="star">★ yours</span> <b>Lead handoff:</b> the Next.js marketing app captures a lead; when the user moves to buy, that data is passed <b>securely</b> into the React journey app so they don't re-enter it. You built the frontend side; encryption was shared with backend.</p>
+      </div>
+
+      <div class="qa"><p class="q"><span class="mark">Q</span>What does React Router do?</p>
+        <p class="a"><span class="mark">A</span>Handles navigation in a single-page app — different components for different URLs, no full reload.</p>
+        <button class="btn reveal">Show answer</button></div>
+
+      <div class="qa yours"><p class="q"><span class="mark">Q</span>What is a dynamic route?</p>
+        <p class="a"><span class="mark">A</span>A route with a variable part like <code>/quote/:insurerId</code>. <span class="star">★ yours</span> That's how one route handles 20+ insurers — the ID tells the page which data to load.</p>
+        <button class="btn reveal">Show answer</button></div>
+
+      <div class="qa"><p class="q"><span class="mark">Q</span>How do you integrate a REST API and handle loading/errors?</p>
+        <p class="a"><span class="mark">A</span>Call the endpoint in an effect/handler, await it, store the result in state, and handle loading, success, and error — a loader while loading, a clear message on error.</p>
+        <button class="btn reveal">Show answer</button></div>
+
+      <div class="qa yours"><p class="q"><span class="mark">Q</span>Explain the lead handoff between your two apps.</p>
+        <p class="a"><span class="mark">A</span>The Next.js marketing app captures the lead; it's passed securely into the React journey app so the user doesn't re-enter their info. I built the frontend side; security was shared with backend.</p>
+        <button class="btn reveal">Show answer</button></div>
+    </section>
+
+    <!-- 11 Analytics -->
+    <section class="topic" id="ga" data-title="Analytics, GA4 &amp; Consent">
+      <h2><span class="n">11</span> Analytics, GA4 &amp; Consent</h2>
+      <div class="concept">
+        <p><b>GA4 event tracking</b> records what users do — page views, clicks, form steps. You add "events" in code that fire at key moments ("proposal started", "payment clicked"). A <b>conversion funnel</b> is the step-by-step path to a goal: quote → proposal → KYC → payment, showing where people drop off. <b>Consent management</b> makes sure tracking only runs after the user agrees, keeping the product compliant.</p>
+      </div>
+
+      <div class="qa yours"><p class="q"><span class="mark">Q</span>What is GA4 event tracking?</p>
+        <p class="a"><span class="mark">A</span>Recording user actions (clicks, steps completed) via events fired in code, so the business sees engagement and drop-off.</p>
+        <button class="btn reveal">Show answer</button></div>
+
+      <div class="qa yours"><p class="q"><span class="mark">Q</span>What is a conversion funnel?</p>
+        <p class="a"><span class="mark">A</span>The step-by-step path to a goal (quote → proposal → KYC → payment), showing where users drop off. <span class="star">★ yours</span> My tracking makes those drop-offs visible.</p>
+        <button class="btn reveal">Show answer</button></div>
+
+      <div class="qa"><p class="q"><span class="mark">Q</span>What is consent management and why does it matter?</p>
+        <p class="a"><span class="mark">A</span>Making sure tracking only runs after the user agrees — keeps the product compliant with privacy rules.</p>
+        <button class="btn reveal">Show answer</button></div>
+    </section>
+
+    <!-- 12 Behavioural -->
+    <section class="topic" id="behave" data-title="Project &amp; Behavioural">
+      <h2><span class="n">12</span> Project &amp; Behavioural</h2>
+      <div class="concept">
+        <p>Use the <b>STAR</b> shape: <b>S</b>ituation → <b>T</b>ask → <b>A</b>ction → <b>R</b>esult. Keep it short, real, and end on the result.</p>
+      </div>
+
+      <div class="qa yours"><p class="q"><span class="mark">Q</span>Walk me through a project you're proud of.</p>
+        <p class="a"><span class="mark">A</span>I own the Quotes and Proposal stages of our SME insurance app — the most complex part of a 2,200-file React codebase. I built config-driven forms so 20+ insurers and 20+ products render from backend JSON instead of hand-coded screens. Result: new products launch without new form code and the UI stays consistent.</p>
+        <button class="btn reveal">Show answer</button></div>
+
+      <div class="qa"><p class="q"><span class="mark">Q</span>Tell me about a challenging bug.</p>
+        <p class="a"><span class="mark">A</span>Pick a real one. Shape: "A conditional field wasn't showing for one insurer. I traced it to a config value read before the dependent field updated, fixed the order dependencies were evaluated, added a test, and it stopped recurring." What broke → how you found it → fix → lesson.</p>
+        <button class="btn reveal">Show answer</button></div>
+
+      <div class="qa yours"><p class="q"><span class="mark">Q</span>How do you handle 20+ insurers from one codebase?</p>
+        <p class="a"><span class="mark">A</span>Shared, config-driven components. Insurer-specific behaviour lives in configuration, not duplicated code — one tested renderer and 20 configs instead of 20 copies that each break differently.</p>
+        <button class="btn reveal">Show answer</button></div>
+
+      <div class="qa yours"><p class="q"><span class="mark">Q</span>Tell me about the KYC flow work.</p>
+        <p class="a"><span class="mark">A</span>I worked on the KYC and document-upload flow right before payment, where users were dropping off. I smoothed the upload and error handling so fewer got stuck, supporting payment completion. I owned the frontend experience; drop-off analysis was a team effort.</p>
+        <button class="btn reveal">Show answer</button></div>
+
+      <div class="qa"><p class="q"><span class="mark">Q</span>Tell me about a disagreement with a teammate.</p>
+        <p class="a"><span class="mark">A</span>Keep it professional. Shape: "We disagreed on adding a config option vs hard-coding a one-off. I explained the maintenance cost across 20 insurers, we weighed trade-offs, and agreed on config. I argue with reasons, not ego."</p>
+        <button class="btn reveal">Show answer</button></div>
+
+      <div class="qa"><p class="q"><span class="mark">Q</span>How do you handle a tight deadline?</p>
+        <p class="a"><span class="mark">A</span>Break work into must-have vs nice-to-have, ship the core first, and flag risk early — I'd rather warn two days ahead than surprise everyone on launch day.</p>
+        <button class="btn reveal">Show answer</button></div>
+
+      <div class="qa yours"><p class="q"><span class="mark">Q</span>What's the biggest thing you've learned in 3 years?</p>
+        <p class="a"><span class="mark">A</span>Good architecture is about <em>not</em> repeating yourself — one config-driven system beats a hundred near-identical screens. And maintainable code matters more than clever code on a big team.</p>
+        <button class="btn reveal">Show answer</button></div>
+
+      <div class="qa"><p class="q"><span class="mark">Q</span>Where do you want to grow?</p>
+        <p class="a"><span class="mark">A</span>Honest and specific — deeper performance profiling, server components in Next.js, and system design. Shows you know where you're heading.</p>
+        <button class="btn reveal">Show answer</button></div>
+    </section>
+
+    <!-- 13 Rapid -->
+    <section class="topic" id="rapid" data-title="Rapid-Fire">
+      <h2><span class="n">13</span> Rapid-Fire</h2>
+      <div class="concept"><p>One-liners for last-minute revision.</p>
+        <ul>
+          <li><b>Virtual DOM</b> — a lightweight copy of the page; React compares it to find the minimum changes, so updates are fast.</li>
+          <li><b>Props drilling</b> — passing data through many layers to reach a deep component; Context or Redux avoids it.</li>
+          <li><b>Debounce</b> — wait until the user stops typing before firing (e.g. search).</li>
+          <li><b>Throttle</b> — run an action at most once every X ms (e.g. on scroll).</li>
+          <li><b>CORS</b> — a browser security rule about which sites can call which APIs; the server must allow your origin.</li>
+          <li><b>REST status codes</b> — 200 OK, 201 created, 400 bad request, 401 unauthorized, 403 forbidden, 404 not found, 500 server error.</li>
+          <li><b>GET vs POST</b> — GET reads data (no body); POST sends data to create/change.</li>
+          <li><b><code>null</code> vs <code>undefined</code></b> — <code>undefined</code> = never set; <code>null</code> = deliberately empty.</li>
+          <li><b>Git merge vs rebase</b> — merge joins branches keeping history; rebase replays your commits on top for a cleaner line. Don't rebase shared branches.</li>
+          <li><b>Promise states</b> — pending, fulfilled, rejected.</li>
+          <li><b>Sync vs async</b> — sync runs line by line and waits; async starts slow work and handles the result later.</li>
+          <li><b>JSX</b> — HTML-like syntax inside JavaScript that React turns into UI.</li>
+          <li><b>Fragment <code>&lt;&gt;</code></b> — group elements without an extra wrapper div.</li>
+          <li><b>Pure function</b> — same input always gives the same output, no side effects.</li>
+        </ul>
+      </div>
+    </section>
+
+    <div class="foot">
+      <p><b>You've got this.</b> You already do this work every day — these notes just help you put words to it. Own the <span class="star">★ yours</span> items, read each concept until it clicks, and it's always fine to say <em>“I haven't gone deep on that, but here's what I understand…”</em></p>
+    </div>
+  </main>
+</div>
+
+<script>
+(function(){
+  var store={get:function(k){try{return localStorage.getItem(k)}catch(e){return null}},
+            set:function(k,v){try{localStorage.setItem(k,v)}catch(e){}}};
+
+  // ---- theme ----
+  var root=document.documentElement, tbtn=document.getElementById('theme');
+  var saved=store.get('notes-theme'); if(saved) root.setAttribute('data-theme',saved);
+  function syncTheme(){var d=root.getAttribute('data-theme'); tbtn.textContent = d==='dark'?'☀':(d==='light'?'☾':'◐');}
+  syncTheme();
+  tbtn.addEventListener('click',function(){
+    var cur=root.getAttribute('data-theme');
+    var mql=window.matchMedia('(prefers-color-scheme: dark)');
+    var next = cur? (cur==='dark'?'light':'dark') : (mql.matches?'light':'dark');
+    root.setAttribute('data-theme',next); store.set('notes-theme',next); syncTheme();
+  });
+
+  // ---- build contents ----
+  var secs=[].slice.call(document.querySelectorAll('section.topic'));
+  var list=document.getElementById('tocList');
+  secs.forEach(function(s){
+    var h=s.querySelector('h2'); var num=h.querySelector('.n').textContent;
+    var title=s.getAttribute('data-title');
+    var li=document.createElement('li');
+    var a=document.createElement('a'); a.href='#'+s.id;
+    a.innerHTML='<span class="n">'+num+'</span><span>'+title+'</span>';
+    li.appendChild(a); list.appendChild(li);
+  });
+
+  // ---- mobile contents toggle ----
+  var toc=document.getElementById('toc'), tocT=document.getElementById('tocToggle');
+  function isMobile(){return window.matchMedia('(max-width:820px)').matches;}
+  function setToc(){ if(isMobile()){toc.hidden=true; tocT.setAttribute('aria-expanded','false');} else {toc.hidden=false;} }
+  setToc(); window.addEventListener('resize',setToc);
+  tocT.addEventListener('click',function(){
+    var open=toc.hidden; toc.hidden=!open; tocT.setAttribute('aria-expanded',String(open));
+  });
+  toc.addEventListener('click',function(e){ if(e.target.closest('a') && isMobile()){toc.hidden=true; tocT.setAttribute('aria-expanded','false');} });
+
+  // ---- practice mode ----
+  var pbtn=document.getElementById('practice');
+  if(store.get('notes-practice')==='1'){document.body.classList.add('practice'); pbtn.setAttribute('aria-pressed','true');}
+  pbtn.addEventListener('click',function(){
+    var on=document.body.classList.toggle('practice');
+    pbtn.setAttribute('aria-pressed',String(on)); store.set('notes-practice',on?'1':'0');
+    if(!on){[].forEach.call(document.querySelectorAll('.qa.open'),function(q){q.classList.remove('open');});}
+  });
+  document.addEventListener('click',function(e){
+    var b=e.target.closest('.reveal'); if(!b)return;
+    var qa=b.closest('.qa'); if(qa) qa.classList.add('open');
+  });
+
+  // ---- search ----
+  var qInput=document.getElementById('q'), nores=document.getElementById('nores');
+  var qas=[].slice.call(document.querySelectorAll('.qa'));
+  function clearMarks(el){ el.querySelectorAll('mark').forEach(function(m){m.replaceWith(document.createTextNode(m.textContent));}); el.normalize(); }
+  function run(term){
+    term=term.trim().toLowerCase();
+    var anyGlobal=false;
+    secs.forEach(function(s){
+      var hay=s.textContent.toLowerCase();
+      var localQas=[].slice.call(s.querySelectorAll('.qa'));
+      var match = !term || hay.indexOf(term)>-1;
+      var anyQa=false;
+      localQas.forEach(function(q){
+        var qm = !term || q.textContent.toLowerCase().indexOf(term)>-1;
+        q.hidden=!(qm|| (!term)); if(qm) anyQa=true;
+      });
+      // show section if its concept/heading matches OR any qa matches
+      var show = !term || match || anyQa;
+      s.hidden=!show; if(show) anyGlobal=true;
+      // when searching, if section matched broadly but no specific qa, still show all its qa
+      if(term && match && !anyQa){ localQas.forEach(function(q){q.hidden=false;}); }
+    });
+    nores.style.display = anyGlobal? 'none':'block';
+  }
+  qInput.addEventListener('input',function(){run(qInput.value);});
+
+  // ---- scrollspy ----
+  var links={}; [].forEach.call(list.querySelectorAll('a'),function(a){links[a.getAttribute('href').slice(1)]=a;});
+  if('IntersectionObserver' in window){
+    var io=new IntersectionObserver(function(ents){
+      ents.forEach(function(en){
+        var a=links[en.target.id]; if(!a)return;
+        if(en.isIntersecting){ [].forEach.call(list.querySelectorAll('a.active'),function(x){x.classList.remove('active');}); a.classList.add('active'); }
+      });
+    },{rootMargin:'-20% 0px -70% 0px',threshold:0});
+    secs.forEach(function(s){io.observe(s);});
+  }
+})();
+</script>
+
+</body></html>
